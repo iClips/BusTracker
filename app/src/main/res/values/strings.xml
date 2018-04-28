@@ -1,0 +1,35 @@
+<resources>
+    <string name="admin_set_bus_id">Setting Bus ID...</string>
+    <string name="admin_btn_title">Admin Only</string>
+    <string name="admin_submit">Submit</string>
+    <string name="admin_submit_error">Enter your bus ID.</string>
+    <string name="admin_text">Enter your bus ID and click submit to enable bus tracking.</string>
+    <string name="app_name">Bus Tracker</string>
+    <string name="google_maps_key">AIzaSyClWWKY8Cug6fO0UfInONtV-9qPDgcp8HI</string>
+    <string name="init_app">Initializing...</string>
+    <string name="connect">CONNECT</string>
+    <string name="connected">Connected!</string>
+    <string name="connecting">Connecting...</string>
+    <string name="default_messages_txt">Not Connected!</string>
+    <string name="demo">This is a prototype - Only for Demo!</string>
+    <string name="disconnect">disconnect</string>
+    <string name="disconnected">diconnected</string>
+    <string name="disconnected_timeout">Connection request timed out.</string>
+    <string name="drawer_close">drawer close</string>
+    <string name="drawer_open">drawer open</string>
+    <string name="find_now">Find Now</string>
+    <string name="transite">Moving In...</string>
+    <string name="not_connected">The system was unable to connect!</string>
+    <string name="not_connected_yet">The system is unable to connect.</string>
+    <string name="notify_location_importance">Bus Tracker requires that your location be switched on. Would you like for the system to switch your location on?</string>
+    <string name="pickups">BUS STOPS</string>
+    <string name="request_error">The system could not complete your request.</string>
+    <string name="restricted_characters">A Bus ID cannot contain the | character. This character is reserve for system use only.</string>
+    <string name="server_url">http://fast-cliffs-26048.herokuapp.com</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="track_bus_btn_title">FIND A BUS</string>
+    <string name="track_select_bus">Select A Bus</string>
+    <string name="find_bus_btn_title">Track Bus Now</string>
+    <string name="welcome_message">Welcome to Bus Tracker.</string>
+    <string name="wifi_ip">192.168.0.1:8080</string>
+</resources>

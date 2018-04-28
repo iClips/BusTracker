@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:id="@+id/content_frame"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:windowSoftInputMode="adjustNothing"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+        <fragment
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:id="@+id/map"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:gravity="top"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        <ScrollView android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true">
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="fill_parent"
+                    android:layout_height="@dimen/main_top_bar_height">
+                    <FrameLayout android:layout_width="fill_parent" android:layout_height="fill_parent">
+                        <RelativeLayout android:layout_width="fill_parent" android:layout_height="fill_parent">
+                            <ImageView android:background="@drawable/bg_main_top_bar" android:layout_width="fill_parent" android:layout_height="fill_parent" android:scaleType="centerCrop" />
+                        </RelativeLayout>
+                        <RelativeLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="fill_parent">
+                            <LinearLayout
+                                android:orientation="horizontal"
+                                android:layout_width="fill_parent"
+                                android:layout_height="@dimen/main_top_bar_height"
+                                android:weightSum="1.0">
+                                <FrameLayout
+                                    android:layout_width="0.0dip"
+                                    android:layout_height="fill_parent"
+                                    android:layout_weight="0.5">
+                                    <ImageView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="fill_parent"
+                                        android:src="@drawable/logo_slogan"
+                                        android:scaleType="fitCenter" />
+                                </FrameLayout>
+                                <LinearLayout android:layout_gravity="end|bottom|center" android:orientation="horizontal" android:layout_width="0.0dip" android:layout_height="wrap_content" android:weightSum="1.0" android:layout_weight="0.5">
+                                    <Button android:textSize="@dimen/button_font_size" android:textStyle="bold" android:textColor="@android:color/white" android:id="@+id/btn_admin_only" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_margin="@dimen/margin_button" android:text="@string/admin_btn_title" android:layout_weight="0.5" android:onClick="adminOnly" />
+                                    <FrameLayout android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_weight="0.5">
+                                        <RelativeLayout android:layout_width="fill_parent" android:layout_height="fill_parent">
+                                            <Button android:textSize="@dimen/button_font_size" android:textStyle="bold" android:textColor="@android:color/white" android:paddingLeft="@dimen/margin_button" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_marginTop="@dimen/margin_button" android:layout_marginBottom="@dimen/margin_button" android:text="@string/track_bus_btn_title" android:onClick="trackBus" />
+                                        </RelativeLayout>
+                                        <RelativeLayout android:focusable="false" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_margin="@dimen/margin_button">
+                                            <ImageView android:background="@drawable/bus_btn" android:padding="@dimen/margin_button" android:layout_width="fill_parent" android:layout_height="fill_parent" android:scaleType="fitCenter" />
+                                        </RelativeLayout>
+                                        <RelativeLayout android:focusable="false" android:layout_width="fill_parent" android:layout_height="fill_parent">
+                                            <TextView android:textSize="12.0sp" android:textStyle="bold" android:textColor="@android:color/white" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="20.0px" android:text="@string/track_bus_btn_title" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                                        </RelativeLayout>
+                                    </FrameLayout>
+                                </LinearLayout>
+                            </LinearLayout>
+                        </RelativeLayout>
+                    </FrameLayout>
+                </LinearLayout>
+                <LinearLayout android:orientation="horizontal" android:id="@+id/track_my_bus_layout" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                    <FrameLayout android:layout_width="wrap_content" android:layout_height="280.0px" android:layout_margin="@dimen/margin_top">
+                        <RelativeLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                            <ImageView android:background="@drawable/bg_blue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:scaleType="centerCrop" />
+                        </RelativeLayout>
+                        <RelativeLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                            <LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="wrap_content">
+                                <TextView android:textStyle="bold" android:textColor="@android:color/white" android:padding="@dimen/padding_inner_container" android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="@string/track_select_bus" android:inputType="text" />
+                                <ListView android:id="@+id/selectBusID" android:background="#99ffffff" android:layout_width="fill_parent" android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </RelativeLayout>
+                    </FrameLayout>
+                </LinearLayout>
+                <LinearLayout android:orientation="horizontal" android:id="@+id/admin_entrance" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                    <FrameLayout android:layout_width="wrap_content" android:layout_height="280.0px" android:layout_margin="@dimen/margin_top">
+                        <RelativeLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                            <ImageView android:background="@drawable/bg_blue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:scaleType="centerCrop" />
+                        </RelativeLayout>
+                        <RelativeLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                            <LinearLayout android:orientation="vertical" android:padding="@dimen/padding_inner_container" android:layout_width="fill_parent" android:layout_height="wrap_content">
+                                <TextView android:textStyle="bold" android:textColor="@android:color/white" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/admin_text" />
+                                <EditText android:textColor="@android:color/white" android:id="@+id/edtBusID" android:layout_width="fill_parent" android:layout_height="wrap_content" android:inputType="text" />
+                                <Button android:id="@+id/btnSubmit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/admin_submit" android:onClick="adminSubmit" />
+                            </LinearLayout>
+                        </RelativeLayout>
+                    </FrameLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/view_flipper_layout"
+        android:visibility="visible"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+        <ImageView
+            android:layout_gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:src="@drawable/bg_green"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true" />
+        <ViewFlipper
+            android:id="@+id/view_flipper"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:onClick="toggleViewFlipper">
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:src="@drawable/loading_slider1"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:src="@drawable/loading_slider2"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:src="@drawable/loading_slider3"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:src="@drawable/loading_slider4"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:src="@drawable/loading_slider5"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:src="@drawable/loading_slider6"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:src="@drawable/loading_slider7"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:src="@drawable/loading_slider8"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true" />
+            </RelativeLayout>
+        </ViewFlipper>
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            style="@style/ButtonContainer">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/top_bar_max_height"
+                android:src="@drawable/logo_slogan"
+                android:scaleType="fitCenter"
+                android:layout_centerHorizontal="true" />
+        </RelativeLayout>
+        <TextView
+            android:textSize="@dimen/loading_font_size"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:gravity="center_horizontal"
+            android:id="@+id/loading_text"
+            android:background="#dd000000"
+            android:paddingTop="@dimen/margin_top"
+            android:paddingBottom="@dimen/margin_top"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/demo"
+            android:layout_alignParentBottom="true" />
+    </RelativeLayout>
+</FrameLayout>
