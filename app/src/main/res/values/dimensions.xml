@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="top_bar_max_height">100px</dimen>
-    <dimen name="button_font_size">12.0px</dimen>
+    <dimen name="button_font_size">12.0sp</dimen>
     <dimen name="general_top_space">10.0px</dimen>
     <dimen name="loading_font_size">18.0px</dimen>
     <dimen name="logo_dimension">40.0px</dimen>
     <dimen name="main_btn_width">250.0px</dimen>
     <dimen name="main_top_bar_height">80.0px</dimen>
-    <dimen name="margin_button">4.0px</dimen>
+    <dimen name="general_sm_spaces_between_views">4.0px</dimen>
     <dimen name="margin_top">40.0px</dimen>
     <dimen name="padding_inner_container">12.0px</dimen>
     <dimen name="slider_icon">40.0px</dimen>
-    <dimen name="title_font_size">34.0px</dimen>
+    <dimen name="title_font_size">34.0sp</dimen>
 </resources>

@@ -28,6 +28,5 @@ dependencies {
         // excluding org.json which is provided by Android
         exclude group: 'org.json', module: 'json'
     }
-    implementation 'com.google.code.gson:gson:2.+'
     implementation 'com.google.android.gms:play-services-location:11.8.0'
 }

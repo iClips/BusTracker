@@ -20,51 +20,89 @@
     </RelativeLayout>
 
     <!--COMPANY NAME / LOGO / SLOGAN-->
-    <ImageView
-        android:layout_margin="@dimen/margin_button"
-        android:background="@android:color/black"
-        android:layout_width="130dp"
-        android:layout_height="80dp"
-        android:src="@drawable/logo_slogan"
-        android:scaleType="fitCenter" />
+        <FrameLayout
+        android:layout_gravity="top"
+        android:layout_margin="@dimen/general_sm_spaces_between_views"
+        android:layout_width="wrap_content"
+        android:layout_height="60dp">
+        <RelativeLayout
+            android:background="#dd000000"
+            android:layout_width="130dp"
+            android:layout_height="match_parent">
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="130dp"
+            android:layout_height="match_parent">
+            <ImageView
+                android:layout_width="130dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/logo_slogan"
+                android:scaleType="fitCenter" />
+        </RelativeLayout>
+    </FrameLayout>
 
-    <!--WINDOW LAYOUT FOR ADMIN AND FIND BUS-->
+    <!-- ADMIN AND FIND BUS - LAYOUT -->
     <RelativeLayout
-        android:layout_marginTop="@dimen/margin_top"
-        android:gravity="top"
+        android:layout_margin="@dimen/margin_top"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
+
         <ScrollView
+            android:id="@+id/wrap_lay"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
+
             <LinearLayout
-                android:orientation="vertical"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentTop="true">
+                android:orientation="vertical">
 
-                <!--BUS LIST LAYOUT-->
+                <!--ADMIN LAYOUT-->
                 <LinearLayout
-                    android:orientation="horizontal"
-                    android:id="@+id/track_my_bus_layout"
-                    android:visibility="gone"
+                    android:layout_marginTop="@dimen/main_top_bar_height"
+                    android:background="#dd0079bd"
+                    android:id="@+id/admin_entrance"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+                    <!--TITLE-->
                     <FrameLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="280.0px"
-                        android:layout_margin="@dimen/margin_top">
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp">
+                        <!--TITLE BACKGROUND-->
                         <RelativeLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
                             <ImageView
-                                android:alpha="0.8"
-                                android:background="@drawable/bg_blue"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/bg_blue" />
+                        </RelativeLayout>
+
+                        <!--TITLE-->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:scaleType="centerCrop" />
+                                android:layout_margin="@dimen/general_sm_spaces_between_views"
+                                android:inputType="text"
+                                android:text="@string/admin_btn_title"
+                                android:textColor="@android:color/white"
+                                android:textSize="20sp"
+                                android:textStyle="bold" />
                         </RelativeLayout>
+                    </FrameLayout>
+
+                    <!--CONTENT-->
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
                         <RelativeLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
@@ -73,97 +111,109 @@
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:paddingBottom="3dp"
-                                android:paddingLeft="20dp"
-                                android:paddingRight="20dp"
-                                android:paddingTop="5dp"
-                                android:weightSum="1"
-                                tools:background="@drawable/bg_main_top_bar">
+                                android:padding="@dimen/padding_inner_container">
 
                                 <TextView
-                                    android:layout_width="fill_parent"
-                                    android:layout_height="0dp"
-                                    android:layout_weight="0.2"
-                                    android:inputType="text"
-                                    android:padding="@dimen/padding_inner_container"
-                                    android:text="@string/track_select_bus"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/admin_text"
                                     android:textColor="@android:color/white"
                                     android:textStyle="bold" />
 
-                                <ListView
-                                    android:id="@+id/selectBusID"
+                                <EditText
+                                    android:id="@+id/edtBusID"
                                     android:layout_width="fill_parent"
-                                    android:layout_height="0dp"
-                                    android:layout_marginLeft="20dp"
-                                    android:layout_marginRight="20dp"
-                                    android:layout_marginTop="5dp"
-                                    android:layout_weight="0.7"
-                                    android:background="#99ffffff"
-                                    android:padding="@dimen/margin_button" />
+                                    android:layout_height="wrap_content"
+                                    android:inputType="text"
+                                    android:textColor="@android:color/white" />
 
-                                <HorizontalScrollView
+                                <Button
+                                    android:background="@drawable/round_shape"
+                                    android:id="@+id/btnSubmit"
                                     android:layout_width="wrap_content"
-                                    android:layout_height="0dp"
-                                    android:layout_weight="0.1">
-
-                                    <TextView
-                                        android:id="@+id/txtSelectBusOutput"
-                                        android:layout_width="fill_parent"
-                                        android:layout_height="fill_parent"
-                                        android:inputType="text"
-                                        android:textColor="@android:color/white"
-                                        android:textSize="10sp" />
-                                </HorizontalScrollView>
+                                    android:layout_height="wrap_content"
+                                    android:onClick="adminSubmit"
+                                    android:text="@string/admin_submit" />
                             </LinearLayout>
                         </RelativeLayout>
                     </FrameLayout>
                 </LinearLayout>
-                <!--ADMIN LAYOUT-->
+
+                <!--BUS LIST LAYOUT-->
                 <LinearLayout
-                    android:orientation="horizontal"
-                    android:id="@+id/admin_entrance"
-                    android:visibility="gone"
+                    android:layout_marginTop="@dimen/main_top_bar_height"
+                    android:id="@+id/track_my_bus_layout"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
                     <FrameLayout
+                        android:background="#dd0079bd"
                         android:layout_width="wrap_content"
-                        android:layout_height="280.0px"
-                        android:layout_margin="@dimen/margin_top">
+                        android:layout_height="wrap_content">
                         <RelativeLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
-                            <ImageView
-                                android:background="@drawable/bg_blue"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:scaleType="centerCrop" />
-                        </RelativeLayout>
-                        <RelativeLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
+
                             <LinearLayout
-                                android:orientation="vertical"
-                                android:padding="@dimen/padding_inner_container"
                                 android:layout_width="fill_parent"
-                                android:layout_height="wrap_content">
-                                <TextView
-                                    android:textStyle="bold"
-                                    android:textColor="@android:color/white"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/admin_text" />
-                                <EditText
-                                    android:textColor="@android:color/white"
-                                    android:id="@+id/edtBusID"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                tools:background="#dd0079bd">
+                                <!--TITLE-->
+                                <FrameLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="40dp">
+                                    <!--TITLE BACKGROUND-->
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent">
+
+                                        <ImageView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:scaleType="centerCrop"
+                                            android:src="@drawable/bg_blue" />
+                                    </RelativeLayout>
+
+                                    <!--TITLE-->
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent">
+
+                                        <TextView
+                                            android:layout_width="fill_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_margin="@dimen/general_sm_spaces_between_views"
+                                            android:inputType="text"
+                                            android:text="@string/track_select_bus"
+                                            android:textColor="@android:color/white"
+                                            android:textSize="20sp"
+                                            android:textStyle="bold" />
+                                    </RelativeLayout>
+                                </FrameLayout>
+
+                                <ListView
+                                    android:id="@+id/selectBusID"
                                     android:layout_width="fill_parent"
-                                    android:layout_height="wrap_content"
-                                    android:inputType="text" />
-                                <Button
-                                    android:id="@+id/btnSubmit"
+                                    android:layout_height="220dp"
+                                    android:layout_margin="10dp"
+                                    android:background="#61b43e"
+                                    android:padding="@dimen/general_sm_spaces_between_views" />
+
+                                <HorizontalScrollView
                                     android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/admin_submit"
-                                    android:onClick="adminSubmit" />
+                                    android:layout_height="wrap_content">
+                                    <!--FEEDBACK-->
+                                    <TextView
+                                        android:id="@+id/txtSelectBusOutput"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:inputType="text"
+                                        android:textColor="@android:color/white"
+                                        android:textSize="14sp" />
+                                </HorizontalScrollView>
                             </LinearLayout>
                         </RelativeLayout>
                     </FrameLayout>
@@ -206,7 +256,7 @@
                 <TextView
                     android:layout_gravity="center_horizontal"
                     android:textStyle="bold"
-                    android:textSize="10dp"
+                    android:textSize="10sp"
                     android:textColor="@android:color/white"
                     android:text="@string/pickups"
                     android:layout_width="wrap_content"
@@ -232,9 +282,10 @@
                     android:scaleType="fitCenter"
                     android:src="@drawable/connect_white" />
                 <TextView
+                    android:id="@+id/txt_connect_btn"
                     android:layout_gravity="center_horizontal"
                     android:textStyle="bold"
-                    android:textSize="10dp"
+                    android:textSize="10sp"
                     android:textColor="@android:color/white"
                     android:text="@string/connect"
                     android:layout_width="wrap_content"
@@ -243,20 +294,25 @@
             </LinearLayout>
 
             <!--ADMIN ONLY-->
-            <Button
-                android:layout_marginLeft="10dp"
-                android:visibility="visible"
-                android:id="@+id/btn_admin_only"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:padding="@dimen/general_sm_spaces_between_views"
                 android:layout_weight="0.25"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|center_horizontal"
-                android:layout_margin="@dimen/margin_button"
-                android:onClick="adminOnly"
-                android:text="@string/admin_btn_title"
-                android:textColor="@android:color/holo_blue_dark"
-                android:textSize="@dimen/button_font_size"
-                android:textStyle="bold" />
+                android:layout_width="0dp"
+                android:layout_height="match_parent">
+                <Button
+                    android:background="@drawable/round_shape"
+                    android:visibility="visible"
+                    android:id="@+id/btn_admin_only"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="@dimen/general_sm_spaces_between_views"
+                    android:onClick="adminOnly"
+                    android:text="@string/admin_btn_title"
+                    android:textColor="@android:color/holo_blue_dark"
+                    android:textSize="@dimen/button_font_size"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <!--FIND A BUS-->
             <FrameLayout
