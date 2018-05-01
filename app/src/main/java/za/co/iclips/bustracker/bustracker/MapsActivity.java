@@ -241,14 +241,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     view_flipper_layout.setVisibility(View.VISIBLE);
                 }
 
-                MapsActivity.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        loading_text.setText(
-                                MapsActivity.this.getApplicationContext().getResources().getString(
+                loading_text.setText(MapsActivity.this.getApplicationContext().getResources().getString(
                                         R.string.init_app));
-                    }
-                });
 
                 new Timer().schedule(new TimerTask() {
                     @Override
@@ -256,24 +250,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         MapsActivity.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if (view_flipper_layout.getVisibility() == View.VISIBLE) {
-                                    view_flipper_layout.setVisibility(View.GONE);
-                                }
+                                loading_text.setText("Opening...");
                             }
                         });
-//                        new Timer().schedule(new TimerTask() {
-//                            @Override
-//                            public void run() {
-//                                MapsActivity.this.runOnUiThread(new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        loading_text.setText("");
-//                                    }
-//                                });
-//                            }
-//                        }, 3000);
                     }
-                }, 10450);
+                }, 2000);
             }
         });
     }
@@ -456,12 +437,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            return;
+            MapsActivity.this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (view_flipper_layout.getVisibility() == View.VISIBLE) {
+                        view_flipper_layout.setVisibility(View.GONE);
+                    }
+                }
+            });
+        } else {
+            mMap.setMyLocationEnabled(true);
         }
-        mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setTiltGesturesEnabled(true);
         mMap.getUiSettings().setRotateGesturesEnabled(true);
-        mMap.getUiSettings().setMapToolbarEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
@@ -506,6 +494,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(this);
+
+        //hide splash screen
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                MapsActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (view_flipper_layout.getVisibility() == View.VISIBLE) {
+                            view_flipper_layout.setVisibility(View.GONE);
+                        }
+
+                        //move the camera closer
+                        doAnimateCameraToPickUps();
+                    }
+                });
+            }
+        }, 5000);
     }
 
     @Override
@@ -651,12 +657,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         doAnimateCameraToPickUps();
     }
 
-    private void doAnimateCameraToPickUps() {
+    void doAnimateCameraToPickUps() {
         MapsActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 //find the device's marker location
                 if (lat != null && lng != null) {
+                    boolean blnAtLeastOne = false;
                     //only bound around close by pickups
                     LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
@@ -665,6 +672,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             MARKER_PICKUP_POINT_VALK_672.longitude,
                             lat, lng, results);
                     if (results[0] < 1000) {
+                        blnAtLeastOne = true;
                         builder.include(new LatLng(
                                 MARKER_PICKUP_POINT_VALK_672.latitude,
                                 MARKER_PICKUP_POINT_VALK_672.longitude));
@@ -674,6 +682,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             MARKER_PICKUP_POINT_VALK_671.longitude,
                             lat, lng, results);
                     if (results[0] < 1000) {
+                        blnAtLeastOne = true;
                         builder.include(new LatLng(
                                 MARKER_PICKUP_POINT_VALK_671.latitude,
                                 MARKER_PICKUP_POINT_VALK_671.longitude));
@@ -683,6 +692,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             MARKER_PICKUP_POINT_FLAMINK_673.longitude,
                             lat, lng, results);
                     if (results[0] < 1000) {
+                        blnAtLeastOne = true;
                         builder.include(new LatLng(
                                 MARKER_PICKUP_POINT_FLAMINK_673.latitude,
                                 MARKER_PICKUP_POINT_FLAMINK_673.longitude));
@@ -692,6 +702,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             MARKER_PICKUP_POINT_FLAMINK_674.longitude,
                             lat, lng, results);
                     if (results[0] < 1000) {
+                        blnAtLeastOne = true;
                         builder.include(new LatLng(
                                 MARKER_PICKUP_POINT_FLAMINK_674.latitude,
                                 MARKER_PICKUP_POINT_FLAMINK_674.longitude));
@@ -701,25 +712,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             MARKER_PICKUP_POINT_MARKET_554.longitude,
                             lat, lng, results);
                     if (results[0] < 1000) {
+                        blnAtLeastOne = true;
                         builder.include(new LatLng(
                                 MARKER_PICKUP_POINT_MARKET_554.latitude,
                                 MARKER_PICKUP_POINT_MARKET_554.longitude));
                     }
 
-                    LatLngBounds bounds = builder.build();
+                    if (blnAtLeastOne) {
+                        setTextViewText("Moving camera over bus stops near you...");
 
-                    int padding = 30; // offset from edges of the map in pixels
+                        LatLngBounds bounds = builder.build();
 
-                    // Move camera.
-                    Display display = getWindowManager().getDefaultDisplay();
-                    int width = display.getWidth();
-                    int height = display.getHeight();
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(
-                            bounds, width, height,padding));
+                        int padding = 30; // offset from edges of the map in pixels
 
-                    setTextViewText("Moving camera over bus stops closest to you.");
+                        // Move camera.
+                        Display display = getWindowManager().getDefaultDisplay();
+                        int width = display.getWidth();
+                        int height = display.getHeight();
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(
+                                bounds, width, height,padding));
+                    } else {
+                        setTextViewText(
+                                "No bus stops found near you within a 1 kilometer radius");
+                    }
                 } else {
-                    setTextViewText("Switch on your location to enable this feature.");
+                    setTextViewText("The system was unable to retieve your location.");
                 }
             }
         });
@@ -982,22 +999,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         float[] results = new float[1];
                         LatLng lla = null, llb = null;
                         for (int i = 0; i < markers.size(); i++) {
-                            if (markers.get(i).getTag() == "Bus One") {
-                                lla = new LatLng(markers.get(i).getPosition().latitude,
-                                        markers.get(i).getPosition().longitude);
-                            }
+                            //current location
                             if (markers.get(i).getTag() == "Global Marker") {
                                 llb = new LatLng(markers.get(i).getPosition().latitude,
                                         markers.get(i).getPosition().longitude);
                             }
                         }
-                        if (lla != null && llb != null) {
-                            Location.distanceBetween(lla.latitude, lla.longitude,
-                                    llb.latitude, llb.longitude, results);
+                        for (int i = 0; i < markers.size(); i++) {
+                            if (markers.get(i).getTag() != "Global Marker") {
+                                if (lla != null && llb != null) {
+                                    Location.distanceBetween(lla.latitude, lla.longitude,
+                                            llb.latitude, llb.longitude, results);
 
-                            if (results[0] < 1000) {
-                                setTextViewText("The bus is " + String.valueOf((int)results[0])
-                                        + " meters from you.");
+                                    if (results[0] < 1000) {
+                                        setTextViewText(markers.get(i).getTitle() + " is "
+                                                + String.valueOf((int)results[0])
+                                                + " meters from you.");
+                                    }
+                                }
                             }
                         }
                     }
@@ -1135,12 +1154,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }).on("set bus list", new Emitter.Listener() {
             public void call(Object... args) {
-                final String[] list = String.valueOf(args[0]).split("\\|");
+                final String[] list1 = String.valueOf(args[0]).split("\\|");
+                final List<String> list = new ArrayList<>();
+                list.add("Simulated Path - New Dawn Park CBD");
+                for (String item: list1) {
+                    list.add(item);
+                }
 
-                if (list.length > 0) {
+                if (list.size() > 0) {
                     MapsActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            adapter.clear();
+
                             for (String item: list) {
                                 adapter.insert(item, adapter.getCount());
                             }
@@ -1148,7 +1174,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             adapter.notifyDataSetChanged();
                         }
                     });
-
 
                     MapsActivity.this.v.vibrate(50);
                 }
@@ -1201,7 +1226,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 boolean have_marker = false;
                 for (int i = 0; i < markers.size(); i++) {
                     if (markers.get(i).getTag() == loc[0]) {
-                        setTextViewText("found");
                         // Setting latitude and longitude for the marker
                         markers.get(i).setPosition(
                                 new LatLng(Double.parseDouble(loc[1]),
@@ -1217,7 +1241,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     simBusTimer.cancel();
                     hasSimTimerStarted = false;
                     for (int i = 0; i < markers.size(); i++) {
-                        if (markers.get(i).getTag() == "Bus One") {
+                        if (markers.get(i).getTitle() == "Bus One") {
                             // Setting latitude and longitude for the marker
                             markers.remove(i);
                             simuatedBusMarker.setVisible(false);

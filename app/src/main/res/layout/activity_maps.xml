@@ -26,7 +26,7 @@
         android:layout_width="wrap_content"
         android:layout_height="60dp">
         <RelativeLayout
-            android:background="#dd000000"
+            android:background="#99000000"
             android:layout_width="130dp"
             android:layout_height="match_parent">
         </RelativeLayout>
@@ -327,7 +327,7 @@
                         android:onClick="trackBus"
                         android:background="@drawable/bus_btn"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:scaleType="fitCenter" />
                 </RelativeLayout>
                 <RelativeLayout
