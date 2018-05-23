@@ -26,7 +26,7 @@
         android:layout_width="wrap_content"
         android:layout_height="60dp">
         <RelativeLayout
-            android:background="#99000000"
+            android:background="#E6000000"
             android:layout_width="130dp"
             android:layout_height="match_parent">
         </RelativeLayout>
@@ -59,7 +59,7 @@
 
                 <!--ADMIN LAYOUT-->
                 <LinearLayout
-                    android:layout_marginTop="@dimen/main_top_bar_height"
+                    android:layout_marginTop="60dp"
                     android:background="#dd0079bd"
                     android:id="@+id/admin_entrance"
                     android:layout_width="wrap_content"
@@ -88,14 +88,30 @@
                             android:layout_height="match_parent">
 
                             <TextView
+                                android:layout_marginLeft="10dp"
+                                android:layout_centerVertical="true"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_margin="@dimen/general_sm_spaces_between_views"
                                 android:inputType="text"
                                 android:text="@string/admin_btn_title"
                                 android:textColor="@android:color/white"
                                 android:textSize="20sp"
                                 android:textStyle="bold" />
+                        </RelativeLayout>
+
+                        <!--HIDE WINDOW-->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <ImageView
+                                android:onClick="hideAdminOnlyWindow"
+                                android:layout_centerVertical="true"
+                                android:layout_alignParentRight="true"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:scaleType="fitCenter"
+                                android:src="@android:drawable/ic_menu_close_clear_cancel" />
                         </RelativeLayout>
                     </FrameLayout>
 
@@ -111,7 +127,7 @@
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:padding="@dimen/padding_inner_container">
+                                android:padding="10dp">
 
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -133,6 +149,8 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:onClick="adminSubmit"
+                                    android:textStyle="bold"
+                                    android:textColor="@android:color/holo_blue_dark"
                                     android:text="@string/admin_submit" />
                             </LinearLayout>
                         </RelativeLayout>
@@ -141,7 +159,7 @@
 
                 <!--BUS LIST LAYOUT-->
                 <LinearLayout
-                    android:layout_marginTop="@dimen/main_top_bar_height"
+                    android:layout_marginTop="60dp"
                     android:id="@+id/track_my_bus_layout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -165,8 +183,9 @@
                                 <FrameLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="40dp">
-                                    <!--TITLE BACKGROUND-->
+                                    <!-- BACKGROUND -->
                                     <RelativeLayout
+                                        android:layout_marginBottom="2dp"
                                         android:layout_width="match_parent"
                                         android:layout_height="match_parent">
 
@@ -176,21 +195,43 @@
                                             android:scaleType="centerCrop"
                                             android:src="@drawable/bg_blue" />
                                     </RelativeLayout>
+                                    <!-- SHADOW BACKGROUND -->
+                                    <RelativeLayout
+                                        android:background="#33000000"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent">
 
+                                    </RelativeLayout>
                                     <!--TITLE-->
                                     <RelativeLayout
+                                        android:paddingLeft="10dp"
                                         android:layout_width="match_parent"
                                         android:layout_height="match_parent">
 
                                         <TextView
+                                            android:layout_centerVertical="true"
                                             android:layout_width="fill_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_margin="@dimen/general_sm_spaces_between_views"
-                                            android:inputType="text"
                                             android:text="@string/track_select_bus"
+                                            android:inputType="text"
                                             android:textColor="@android:color/white"
                                             android:textSize="20sp"
                                             android:textStyle="bold" />
+                                    </RelativeLayout>
+
+                                    <!--HIDE WINDOW-->
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent">
+
+                                        <ImageView
+                                            android:onClick="hideSelectBusWindow"
+                                            android:layout_margin="@dimen/general_sm_spaces_between_views"
+                                            android:layout_alignParentRight="true"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="match_parent"
+                                            android:scaleType="fitCenter"
+                                            android:src="@android:drawable/ic_menu_close_clear_cancel" />
                                     </RelativeLayout>
                                 </FrameLayout>
 
@@ -207,10 +248,13 @@
                                     android:layout_height="wrap_content">
                                     <!--FEEDBACK-->
                                     <TextView
+                                        android:layout_marginLeft="10dp"
+                                        android:layout_marginRight="10dp"
+                                        android:layout_marginBottom="10dp"
                                         android:id="@+id/txtSelectBusOutput"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:inputType="text"
+                                        android:textStyle="bold"
                                         android:textColor="@android:color/white"
                                         android:textSize="14sp" />
                                 </HorizontalScrollView>
@@ -235,64 +279,6 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-            <!--BTN ANIMATE BUS STOP-->
-            <LinearLayout
-                android:weightSum="1"
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_weight="0.25"
-                android:layout_height="match_parent">
-
-                <ImageButton
-                    android:id="@+id/pickups"
-                    android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    android:layout_gravity="center_vertical|center_horizontal"
-                    android:layout_weight="0.8"
-                    android:background="@android:color/transparent"
-                    android:onClick="animatePickups"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/bus_stop" />
-                <TextView
-                    android:layout_gravity="center_horizontal"
-                    android:textStyle="bold"
-                    android:textSize="10sp"
-                    android:textColor="@android:color/white"
-                    android:text="@string/pickups"
-                    android:layout_width="wrap_content"
-                    android:layout_weight="0.2"
-                    android:layout_height="0dp" />
-            </LinearLayout>
-
-            <!--CONNECT TO SERVER-->
-            <LinearLayout
-                android:weightSum="1"
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_weight="0.25"
-                android:layout_height="match_parent">
-                <ImageButton
-                    android:id="@+id/btn_connect"
-                    android:layout_gravity="center_vertical|center_horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.8"
-                    android:background="@android:color/transparent"
-                    android:onClick="connect"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/connect_white" />
-                <TextView
-                    android:id="@+id/txt_connect_btn"
-                    android:layout_gravity="center_horizontal"
-                    android:textStyle="bold"
-                    android:textSize="10sp"
-                    android:textColor="@android:color/white"
-                    android:text="@string/connect"
-                    android:layout_width="wrap_content"
-                    android:layout_weight="0.2"
-                    android:layout_height="0dp" />
-            </LinearLayout>
-
             <!--ADMIN ONLY-->
             <LinearLayout
                 android:padding="@dimen/general_sm_spaces_between_views"
@@ -312,6 +298,65 @@
                     android:textColor="@android:color/holo_blue_dark"
                     android:textSize="@dimen/button_font_size"
                     android:textStyle="bold" />
+            </LinearLayout>
+
+            <!--BTN ANIMATE BUS STOP-->
+            <LinearLayout
+                android:weightSum="1"
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:layout_height="match_parent">
+
+                <ImageButton
+                    android:id="@+id/pickups"
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_gravity="center_vertical|center_horizontal"
+                    android:layout_weight="0.75"
+                    android:background="@android:color/transparent"
+                    android:onClick="animatePickups"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/bus_stop" />
+                <TextView
+                    android:onClick="allbusstops"
+                    android:layout_gravity="center_horizontal"
+                    android:textStyle="bold"
+                    android:textSize="10sp"
+                    android:textColor="@android:color/white"
+                    android:text="@string/pickups"
+                    android:layout_width="wrap_content"
+                    android:layout_weight="0.25"
+                    android:layout_height="0dp" />
+            </LinearLayout>
+
+            <!--CONNECT TO SERVER-->
+            <LinearLayout
+                android:weightSum="1"
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:layout_height="match_parent">
+                <ImageButton
+                    android:id="@+id/btn_connect"
+                    android:layout_gravity="center_vertical|center_horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="0.75"
+                    android:background="@android:color/transparent"
+                    android:onClick="connect"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/connect_white" />
+                <TextView
+                    android:id="@+id/txt_connect_btn"
+                    android:layout_gravity="center_horizontal"
+                    android:textStyle="bold"
+                    android:textSize="10sp"
+                    android:textColor="@android:color/white"
+                    android:text="@string/connect"
+                    android:layout_width="wrap_content"
+                    android:layout_weight="0.25"
+                    android:layout_height="0dp" />
             </LinearLayout>
 
             <!--FIND A BUS-->

@@ -8,8 +8,8 @@
     <string name="google_maps_key">AIzaSyClWWKY8Cug6fO0UfInONtV-9qPDgcp8HI</string>
     <string name="init_app">Initializing...</string>
     <string name="connect">CONNECT</string>
-    <string name="connected">Connected!</string>
-    <string name="connecting">Connecting...</string>
+    <string name="connected">CONNECTED!</string>
+    <string name="connecting">CONNECTING...</string>
     <string name="default_messages_txt">Not Connected!</string>
     <string name="demo">This is a prototype - Only for Demo!</string>
     <string name="disconnect">disconnect</string>

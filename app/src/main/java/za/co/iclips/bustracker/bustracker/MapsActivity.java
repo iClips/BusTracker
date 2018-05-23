@@ -1,14 +1,18 @@
 package za.co.iclips.bustracker.bustracker;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
@@ -17,6 +21,7 @@ import android.support.v7.app.AlertDialog;
 import android.os.Vibrator;
 
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -24,6 +29,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -36,10 +42,10 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -49,8 +55,14 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -68,6 +80,15 @@ import org.json.JSONObject;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+
+import android.animation.ObjectAnimator;
+import android.animation.TypeEvaluator;
+import android.animation.ValueAnimator;
+import android.annotation.TargetApi;
+import android.os.Build;
+import android.util.Property;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Interpolator;
 
 import static com.google.android.gms.maps.model.LatLngBounds.*;
 
@@ -124,6 +145,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private Map<Marker, Map<String, Object>> marker_pickups = new HashMap<>();
     private Map<String, Object> markers_pickups_dm = new HashMap<>();
+    int mIndex, msCount = 0;
+    PolylineOptions ploCDDPacs_route;
+
+    /* ==== Life Cycle Methods - Start === */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,8 +181,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         this.mContext = this;
     }
-
-    /* ==== Life Cycle Methods - Start === */
 
     @Override
     protected void onResume() {
@@ -254,7 +277,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                         });
                     }
-                }, 2000);
+                }, 5000);
             }
         });
     }
@@ -278,7 +301,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /*=============== Splash Screen - End   ===============*/
 
-    /*=============== Maps - Start ===============*/
+    /*#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$# Maps - Start #$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#*/
 
     private void initMap() {
         mapsLayout = (RelativeLayout) findViewById(R.id.mapLayout);
@@ -335,17 +358,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Display display = getWindowManager().getDefaultDisplay();
                 final int width = display.getWidth();
                 final int height = display.getHeight();
-
-//                mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
-//                    @Override
-//                    public void onMapLoaded() {
-//                        //Add markers here
-//                        MapsActivity.this.mMap.animateCamera(
-//                                CameraUpdateFactory.newLatLngBounds(
-//                                        builder.build(), width, height,20));
-//                        mMap.setOnMapLoadedCallback(null);
-//                    }
-//                });
 
                 if (MapsActivity.this.is_connected && MapsActivity.this.is_bus) {
                     final JSONObject json = new JSONObject();
@@ -430,13 +442,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 ActivityCompat.checkSelfPermission(
                         this, Manifest.permission.ACCESS_COARSE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             MapsActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -481,9 +486,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 }
                                 // Move camera.
                                 zoomMapToLatLngBounds(mapsLayout, mMap, builder.build());
-
-                                setTextViewText("Last location activated.");
-                            }
+                    }
                         });
                     }
                 }
@@ -507,7 +510,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
 
                         //move the camera closer
-                        doAnimateCameraToPickUps();
+                        if (lat != null && lng != null) {
+                            doAnimateCameraToPickUps(true);
+                        }
                     }
                 });
             }
@@ -546,29 +551,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-    }
-
-    public static void displayPromptForEnablingGPS ( final Activity activity){
-
-        final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        final String action = Settings.ACTION_LOCATION_SOURCE_SETTINGS;
-        final String message = activity.getString(R.string.notify_location_importance);
-
-        builder.setMessage(message)
-                .setPositiveButton("Yes",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface d, int id) {
-                                activity.startActivity(new Intent(action));
-                                d.dismiss();
-                            }
-                        })
-                .setNegativeButton("No",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface d, int id) {
-                                d.dismiss();
-                            }
-                        });
-        builder.create().show();
     }
 
     //PICKUPS
@@ -651,101 +633,209 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //doAnimateCameraToPickUps();
     }
 
-    public void animatePickups(View view) {
+    public void animatePickups(final View view) {
         view.startAnimation(buttonClick);
 
-        doAnimateCameraToPickUps();
+        if (lat != null && lng != null) {
+            doAnimateCameraToPickUps(false);
+        }
     }
-
-    void doAnimateCameraToPickUps() {
-        MapsActivity.this.runOnUiThread(new Runnable() {
+    public void allbusstops(final View view) {
+        view.startAnimation(buttonClick);
+        new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                //find the device's marker location
-                if (lat != null && lng != null) {
-                    boolean blnAtLeastOne = false;
-                    //only bound around close by pickups
-                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                MapsActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        view.startAnimation(buttonClick);
 
-                    float[] results = new float[1];
-                    Location.distanceBetween(MARKER_PICKUP_POINT_VALK_672.latitude,
-                            MARKER_PICKUP_POINT_VALK_672.longitude,
-                            lat, lng, results);
-                    if (results[0] < 1000) {
-                        blnAtLeastOne = true;
-                        builder.include(new LatLng(
-                                MARKER_PICKUP_POINT_VALK_672.latitude,
-                                MARKER_PICKUP_POINT_VALK_672.longitude));
+                        if (lat != null && lng != null) {
+                            doAnimateCameraToPickUps(true);
+                        }
                     }
-
-                    Location.distanceBetween(MARKER_PICKUP_POINT_VALK_671.latitude,
-                            MARKER_PICKUP_POINT_VALK_671.longitude,
-                            lat, lng, results);
-                    if (results[0] < 1000) {
-                        blnAtLeastOne = true;
-                        builder.include(new LatLng(
-                                MARKER_PICKUP_POINT_VALK_671.latitude,
-                                MARKER_PICKUP_POINT_VALK_671.longitude));
-                    }
-
-                    Location.distanceBetween(MARKER_PICKUP_POINT_FLAMINK_673.latitude,
-                            MARKER_PICKUP_POINT_FLAMINK_673.longitude,
-                            lat, lng, results);
-                    if (results[0] < 1000) {
-                        blnAtLeastOne = true;
-                        builder.include(new LatLng(
-                                MARKER_PICKUP_POINT_FLAMINK_673.latitude,
-                                MARKER_PICKUP_POINT_FLAMINK_673.longitude));
-                    }
-
-                    Location.distanceBetween(MARKER_PICKUP_POINT_FLAMINK_674.latitude,
-                            MARKER_PICKUP_POINT_FLAMINK_674.longitude,
-                            lat, lng, results);
-                    if (results[0] < 1000) {
-                        blnAtLeastOne = true;
-                        builder.include(new LatLng(
-                                MARKER_PICKUP_POINT_FLAMINK_674.latitude,
-                                MARKER_PICKUP_POINT_FLAMINK_674.longitude));
-                    }
-
-                    Location.distanceBetween(MARKER_PICKUP_POINT_MARKET_554.latitude,
-                            MARKER_PICKUP_POINT_MARKET_554.longitude,
-                            lat, lng, results);
-                    if (results[0] < 1000) {
-                        blnAtLeastOne = true;
-                        builder.include(new LatLng(
-                                MARKER_PICKUP_POINT_MARKET_554.latitude,
-                                MARKER_PICKUP_POINT_MARKET_554.longitude));
-                    }
-
-                    if (blnAtLeastOne) {
-                        setTextViewText("Moving camera over bus stops near you...");
-
-                        LatLngBounds bounds = builder.build();
-
-                        int padding = 30; // offset from edges of the map in pixels
-
-                        // Move camera.
-                        Display display = getWindowManager().getDefaultDisplay();
-                        int width = display.getWidth();
-                        int height = display.getHeight();
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(
-                                bounds, width, height,padding));
-                    } else {
-                        setTextViewText(
-                                "No bus stops found near you within a 1 kilometer radius");
-                    }
-                } else {
-                    setTextViewText("The system was unable to retieve your location.");
-                }
+                });
             }
-        });
+        },1300);
+    }
+    
+    void doAnimateCameraToPickUps(boolean bln_all) {
+        //find the device's marker location
+
+        boolean blnAtLeastOne = false;
+        //only bound around close by pickups
+        final LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+        float[] results = new float[1];
+        Location.distanceBetween(MARKER_PICKUP_POINT_VALK_672.latitude,
+                MARKER_PICKUP_POINT_VALK_672.longitude,
+                lat, lng, results);
+
+        if (bln_all) {
+            blnAtLeastOne = true;
+            builder.include(new LatLng(
+                    MARKER_PICKUP_POINT_VALK_672.latitude,
+                    MARKER_PICKUP_POINT_VALK_672.longitude));
+        } else if (results[0] < 1000)  {
+            blnAtLeastOne = true;
+            builder.include(new LatLng(
+                    MARKER_PICKUP_POINT_VALK_672.latitude,
+                    MARKER_PICKUP_POINT_VALK_672.longitude));
+        }
+
+        Location.distanceBetween(MARKER_PICKUP_POINT_VALK_671.latitude,
+                MARKER_PICKUP_POINT_VALK_671.longitude,
+                lat, lng, results);
+        if (bln_all) {
+            blnAtLeastOne = true;
+            builder.include(new LatLng(
+                    MARKER_PICKUP_POINT_VALK_671.latitude,
+                    MARKER_PICKUP_POINT_VALK_671.longitude));
+        } else
+        if (results[0] < 1000) {
+            blnAtLeastOne = true;
+            builder.include(new LatLng(
+                    MARKER_PICKUP_POINT_VALK_671.latitude,
+                    MARKER_PICKUP_POINT_VALK_671.longitude));
+        }
+
+        Location.distanceBetween(MARKER_PICKUP_POINT_FLAMINK_673.latitude,
+                MARKER_PICKUP_POINT_FLAMINK_673.longitude,
+                lat, lng, results);
+        if (bln_all) {
+            blnAtLeastOne = true;
+            builder.include(new LatLng(
+                    MARKER_PICKUP_POINT_FLAMINK_673.latitude,
+                    MARKER_PICKUP_POINT_FLAMINK_673.longitude));
+        } else if (results[0] < 1000) {
+            blnAtLeastOne = true;
+            builder.include(new LatLng(
+                    MARKER_PICKUP_POINT_FLAMINK_673.latitude,
+                    MARKER_PICKUP_POINT_FLAMINK_673.longitude));
+        }
+
+        Location.distanceBetween(MARKER_PICKUP_POINT_FLAMINK_674.latitude,
+                MARKER_PICKUP_POINT_FLAMINK_674.longitude,
+                lat, lng, results);
+        if (bln_all) {
+            blnAtLeastOne = true;
+            builder.include(new LatLng(
+                    MARKER_PICKUP_POINT_FLAMINK_674.latitude,
+                    MARKER_PICKUP_POINT_FLAMINK_674.longitude));
+        } else if (results[0] < 1000) {
+            blnAtLeastOne = true;
+            builder.include(new LatLng(
+                    MARKER_PICKUP_POINT_FLAMINK_674.latitude,
+                    MARKER_PICKUP_POINT_FLAMINK_674.longitude));
+        }
+
+        Location.distanceBetween(MARKER_PICKUP_POINT_MARKET_554.latitude,
+                MARKER_PICKUP_POINT_MARKET_554.longitude,
+                lat, lng, results);
+        if (bln_all) {
+            blnAtLeastOne = true;
+            builder.include(new LatLng(
+                    MARKER_PICKUP_POINT_MARKET_554.latitude,
+                    MARKER_PICKUP_POINT_MARKET_554.longitude));
+        } else if (results[0] < 1000) {
+            blnAtLeastOne = true;
+            builder.include(new LatLng(
+                    MARKER_PICKUP_POINT_MARKET_554.latitude,
+                    MARKER_PICKUP_POINT_MARKET_554.longitude));
+        }
+
+        if (blnAtLeastOne) {
+            if (!bln_all) {
+                setTextViewText("Showing bus stops near you...");
+            } else {
+                setTextViewText("Showing all bus stops...");
+            }
+
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    MapsActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            LatLngBounds bounds = builder.build();
+
+                            int padding = 30; // offset from edges of the map in pixels
+
+                            // Move camera.
+                            Display display = getWindowManager().getDefaultDisplay();
+                            int width = display.getWidth();
+                            int height = display.getHeight();
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(
+                                    bounds, width, height,padding));
+                        }
+                    });
+                }
+            }, 2000);
+
+//                String adHoc = "";
+//                String[] parts = adHoc.split("\n");
+//                int c = 1;
+//                adHoc= "";
+//                for (String line: parts
+//                     ) {
+//                    if (c % 4 == 0) {
+//                        adHoc += line + "\n";
+//                    }
+//                    c++;
+//                }
+//                writeToFile(adHoc);
+
+        } else {
+            setTextViewText(
+                    "No bus stops found near you within a 1 kilometer radius");
+        }
+    }
+
+    public void writeToFile(String data)
+    {
+        // Get the directory for the user's public pictures directory.
+        final File path =
+                Environment.getExternalStoragePublicDirectory
+                        (
+                                //Environment.DIRECTORY_PICTURES
+                                Environment.DIRECTORY_DCIM + "/Bus Tracker/"
+                        );
+
+        // Make sure the path directory exists.
+        if(!path.exists())
+        {
+            // Make it, if it doesn't exit
+            path.mkdirs();
+        }
+
+        final File file = new File(path, "gps_polyline.txt");
+
+        // Save your stream, don't forget to flush() it before closing it.
+
+        try
+        {
+            file.createNewFile();
+            FileOutputStream fOut = new FileOutputStream(file);
+            OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+            myOutWriter.append(data);
+
+            myOutWriter.close();
+
+            fOut.flush();
+            fOut.close();
+
+            setTextViewText("file is created with the coordinates. path is ");
+        }
+        catch (IOException e)
+        {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
     }
 
     //BUSSES
     private void listSimulatedBusses() {
         List<String> list = new ArrayList<>();
-        list.add("Simulated Path - New Dawn Park CBD");
+        list.add("Simulated - New Dawn Park CBD");
 
         if (adapter == null) {
             adapter = new ArrayAdapter<String>(MapsActivity.this,
@@ -766,21 +856,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 public void run() {
                                     if (i == 0) {
                                         setSimulatedPath();
+                                        //animateSimBusOne();
                                     }
-
-                                    txtSelectBusOutput.setText(
-                                "Showing the location of this bus on the map.");
-                                    new Timer().schedule(new TimerTask() {
-                                        @Override
-                                        public void run() {
-                                            MapsActivity.this.runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    txtSelectBusOutput.setText("");
-                                                }
-                                            });
-                                        }
-                                    }, 5000);
                                 }
                             });
                         }
@@ -798,237 +875,129 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             setTextViewText("The simulated bus is being tracked.");
             return;
         }
-        simulatedPath.add("-33.95790007595538,22.45765500149969");
-        simulatedPath.add("-33.95871878131521,22.456789989092385");
-        simulatedPath.add("-33.96103247125933,22.45502375445608");
-        simulatedPath.add("-33.966442700576934,22.450854260542428");
-        simulatedPath.add("-33.971852585766754,22.4465989359403");
-        simulatedPath.add("-33.97701301076217,22.442300695993936");
-        simulatedPath.add("-33.98231546602098,22.44100653014425");
-        simulatedPath.add("-33.99200085466251,22.443146836703136");
-        simulatedPath.add("-33.99797838390587,22.445279192869975");
-        simulatedPath.add("-34.01412984099146,22.450894397442653");
-        simulatedPath.add("-34.01501914917223,22.450966817086055");
-        simulatedPath.add("-34.016725487621645,22.459176723604514");
-        simulatedPath.add("-34.016940023050296,22.461288627927615");
-        simulatedPath.add("-34.017011165692566,22.461641003136947");
-        simulatedPath.add("-34.0171267723591,22.461970244293525");
-        simulatedPath.add("-34.01733130684497,22.462460417990997");
-        simulatedPath.add("-34.01759809021638,22.463336829786613");
-        simulatedPath.add("-34.0177403743383,22.463978883569553");
-        simulatedPath.add("-34.0178293017934,22.4644063606313");
-        simulatedPath.add("-34.01800715642411,22.46543297613175");
-        simulatedPath.add("-34.017953800074025,22.466182318275287");
-        simulatedPath.add("-34.0179004436904,22.466652710681274");
-        simulatedPath.add("-34.01781151630983,22.467799019759013");
-        simulatedPath.add("-34.01798937097781,22.46878439629586");
-        simulatedPath.add("-34.01814054715259,22.469478417878463");
-        simulatedPath.add("-34.0183717572521,22.470281404202296");
-        simulatedPath.add("-34.01855850341118,22.4708268984607");
-        simulatedPath.add("-34.019172095041235,22.471136358325793");
-        simulatedPath.add("-34.01979457477132,22.470973749404266");
-        simulatedPath.add("-34.01984792996434,22.471830379908397");
-        simulatedPath.add("-34.01970564937509,22.47240806067498");
-        simulatedPath.add("-34.01932326910968,22.472985741441562");
-        simulatedPath.add("-34.01920766543451,22.473541964536025");
-        simulatedPath.add("-34.01936773201973,22.474173289482906");
-        simulatedPath.add("-34.019714541918894,22.474804614429786");
-        simulatedPath.add("-34.02018584540801,22.47506043011458");
-        simulatedPath.add("-34.02052375950641,22.47525187278302");
-        simulatedPath.add("-34.02060379159582,22.475518417303874");
-        simulatedPath.add("-34.02066603872432,22.47573131764443");
-        simulatedPath.add("-34.02068382360978,22.47586911613257");
-        simulatedPath.add("-34.02066603872432,22.476124931817367");
-        simulatedPath.add("-34.02047480792917,22.476577274501324");
-        simulatedPath.add("-34.02047837398308,22.476579096502178");
-        simulatedPath.add("-34.02041168048192,22.476712368762605");
-        simulatedPath.add("-34.020344986928365,22.476845641023033");
-        simulatedPath.add("-34.0203005245302,22.476925269103162");
-        simulatedPath.add("-34.02027829332239,22.47701562601935");
-        simulatedPath.add("-34.020242723377784,22.4771167117716");
-        simulatedPath.add("-34.02019826092606,22.47718024659764");
-        simulatedPath.add("-34.02010488970163,22.47723305258762");
-        simulatedPath.add("-34.019935931986815,22.47730731624972");
-        simulatedPath.add("-34.019731403776795,22.47740840200197");
-        simulatedPath.add("-34.01949575109769,22.47747730124604");
-        simulatedPath.add("-34.01930011441427,22.47757838699829");
-        simulatedPath.add("-34.01906001423198,22.47765265066039");
-        simulatedPath.add("-34.01885993022793,22.477753736412637");
-        simulatedPath.add("-34.01866429207909,22.477822635656707");
-        simulatedPath.add("-34.01842419009831,22.47781643304836");
-        simulatedPath.add("-34.01794398409936,22.477778043931835");
-        simulatedPath.add("-34.017139188324585,22.47772892597925");
-        simulatedPath.add("-34.0163788493955,22.47755642641198");
-        simulatedPath.add("-34.01605870465112,22.477201536631696");
-        simulatedPath.add("-34.015911971239824,22.477029037064426");
-        simulatedPath.add("-34.01587639946554,22.476695604956262");
-        simulatedPath.add("-34.01585861357282,22.476372901684158");
-        simulatedPath.add("-34.01583638120168,22.475964367723577");
-        simulatedPath.add("-34.01586518045307,22.475792784716532");
-        simulatedPath.add("-34.01597634221286,22.475507632370636");
-        simulatedPath.add("-34.016123075512915,22.475136649336264");
-        simulatedPath.add("-34.016145307808976,22.4750553448755");
-        simulatedPath.add("-34.01618977238364,22.474931125070498");
-        simulatedPath.add("-34.01625646920197,22.47472643899505");
-        simulatedPath.add("-34.0163987555726,22.474397533114598");
-        simulatedPath.add("-34.01646989866847,22.47418211820309");
-        simulatedPath.add("-34.01655882745449,22.47400425421779");
-        simulatedPath.add("-34.01661663111543,22.47378883930628");
-        simulatedPath.add("-34.016652202579536,22.473503686960385");
-        simulatedPath.add("-34.01669222045882,22.473272178794787");
-        simulatedPath.add("-34.01671889903454,22.47300311970298");
-        simulatedPath.add("-34.01676780973491,22.472755518283293");
-        simulatedPath.add("-34.01681227398352,22.472540103371784");
-        simulatedPath.add("-34.01685672820884,22.472287137534067");
-        simulatedPath.add("-34.01690564882979,22.47202880727832");
-        simulatedPath.add("-34.016932327338445,22.47187240096514");
-        simulatedPath.add("-34.016981237915836,22.471635528381512");
-        simulatedPath.add("-34.01700346998716,22.471436206724093");
-        simulatedPath.add("-34.01706571975589,22.471183240886376");
-        simulatedPath.add("-34.01708350539572,22.470946368302748");
-        simulatedPath.add("-34.017132415886,22.470645122702763");
-        simulatedPath.add("-34.01717687994364,22.470440436627314");
-        simulatedPath.add("-34.01719911196372,22.470241114969895");
-        simulatedPath.add("-34.01724802238741,22.470052522148535");
-        simulatedPath.add("-34.017399199882455,22.469863929327175");
-        simulatedPath.add("-34.017505913246254,22.46978262486641");
-        simulatedPath.add("-34.017697107687624,22.469690591569588");
-        simulatedPath.add("-34.01796833627266,22.469598558272764");
-        simulatedPath.add("-34.01814174425812,22.46953334706609");
-        simulatedPath.add("-34.01811951248491,22.46934475424473");
-        simulatedPath.add("-34.018026138973845,22.46889330493991");
-        simulatedPath.add("-34.01795499718218,22.468629610266134");
-        simulatedPath.add("-34.01789274806557,22.46834982233827");
-        simulatedPath.add("-34.01784828438291,22.46817195835297");
-        simulatedPath.add("-34.01779048156062,22.467902899261162");
-        simulatedPath.add("-34.01779492793296,22.467639204587385");
-        simulatedPath.add("-34.01781715979117,22.46721650131528");
-        simulatedPath.add("-34.0178571771213,22.466999162461207");
-        simulatedPath.add("-34.01786606985877,22.46676765429561");
-        simulatedPath.add("-34.01791942626401,22.466412764515326");
-        simulatedPath.add("-34.01792387262959,22.46610079007928");
-        simulatedPath.add("-34.01795055081822,22.465890739585802");
-        simulatedPath.add("-34.01796833627266,22.465594858403847");
-        simulatedPath.add("-34.01800390717036,22.46530434163992");
-        simulatedPath.add("-34.017972782635695,22.465046011384175");
-        simulatedPath.add("-34.017937211724956,22.46476622345631");
-        simulatedPath.add("-34.01783939164358,22.464454249020264");
-        simulatedPath.add("-34.01779492793296,22.464271020616934");
-        simulatedPath.add("-34.01774157144948,22.46397513943498");
-        simulatedPath.add("-34.01764375114265,22.46351832571213");
-        simulatedPath.add("-34.01754148433772,22.46312588500564");
-        simulatedPath.add("-34.017497020471055,22.46291047009413");
-        simulatedPath.add("-34.01741253906025,22.462652139838383");
-        simulatedPath.add("-34.01729693278289,22.462409902836725");
-        simulatedPath.add("-34.017185772752335,22.462167665835068");
-        simulatedPath.add("-34.01701680922712,22.46171085211222");
-        simulatedPath.add("-34.01696345225455,22.461377420004055");
-        simulatedPath.add("-34.016883416722824,22.46107080998604");
-        simulatedPath.add("-34.016682087429345,22.46033012866974");
-        simulatedPath.add("-34.016626507029706,22.460147319361567");
-        simulatedPath.add("-34.016615390945404,22.460042294114828");
-        simulatedPath.add("-34.016626507029706,22.459897035732865");
-        simulatedPath.add("-34.016628730246396,22.45968472212553");
-        simulatedPath.add("-34.01666207848967,22.459416082128882");
-        simulatedPath.add("-34.016695426719835,22.459211815148592");
-        simulatedPath.add("-34.01672989100637,22.458991454914212");
-        simulatedPath.add("-34.0167598999277,22.458789870142937");
-        simulatedPath.add("-34.01675100707435,22.45847831480205");
-        simulatedPath.add("-34.01672655172285,22.458338420838118");
-        simulatedPath.add("-34.01667764099871,22.458126107230783");
-        simulatedPath.add("-34.01657759624792,22.457699216902256");
-        simulatedPath.add("-34.016470881717126,22.457435941323638");
 
-        simBusTimer = new Timer();
-        int time = 4000;
+        //inistantiate a instance cbd pacs polyline
+        new Thread(new Runnable() {
+            public void run(){
+                setTextViewText("Building a route for Simulated CDB Pacalstdorp...");
 
-        simBusTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
+                ploCDDPacs_route = Polylines.getPolylineCBDPacaltsdorp();
 
-                if (sCount == simulatedPath.size() - 1) {
-                    sCount = 0;
-                }
+                startSBTomerSchedule(ploCDDPacs_route);
+            }
 
-                final String[] parts = simulatedPath.get(sCount).split("\\,");
+            private void startSBTomerSchedule(final PolylineOptions ploCDDPacs_route) {
+                setTextViewText("Starting bus route for ...");
 
-                MapsActivity.this.runOnUiThread(new Runnable() {
+                simBusTimer = new Timer();
+                int time = 500;
+
+                simBusTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        //BUS ONE
-                        LatLng locs = new LatLng(Double.parseDouble(parts[0]),
-                                Double.parseDouble(parts[1]));
 
-                        boolean blnFound = false;
-                        for (int i = 0; i < markers.size(); i++) {
-                            if (markers.get(i).getTag() == "Bus One") {
-                                // Setting latitude and longitude for the marker
-                                markers.get(i).setPosition(locs);
-
-                                blnFound = true;
-                                break;
-                            }
-                        }
-                        if (!blnFound) {
-                            BitmapDescriptor icon =
-                                    BitmapDescriptorFactory.fromResource(
-                                            R.drawable.bus_marker);
-                            simuatedBusMarker = MapsActivity.this.mMap.addMarker(
-                                    new MarkerOptions().position(locs)
-                                            .title("Bus One")
-                                            .icon(icon));
-                            simuatedBusMarker.setTag("Bus One");
-                            markers.add(simuatedBusMarker);
+                        if (sCount == ploCDDPacs_route.getPoints().size() - 1) {
+                            sCount = 0;
+                            simBusTimer.cancel();
+                            return;
                         }
 
-                        final Builder builder = new LatLngBounds.Builder();
-                        for (Marker marker : markers) {
-                            LatLng geoCode = new LatLng(
-                                    marker.getPosition().latitude,
-                                    marker.getPosition().longitude);
-                            builder.include(geoCode);
-                        }
-                        // Move camera.
-                        Display display = getWindowManager().getDefaultDisplay();
-                        int width = display.getWidth();
-                        int height = display.getHeight();
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(
-                                builder.build(), width, height,40));
+                        MapsActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                //BUS ONE
+                                LatLng locs = ploCDDPacs_route.getPoints().get(sCount);
+                                boolean blnFound = false;
+                                for (int i = 0; i < markers.size(); i++) {
+                                    if (markers.get(i).getTag() == "Bus One") {
+                                        // Setting latitude and longitude for the marker
+                                        markers.get(i).setPosition(locs);
 
-                        //get the distance between local location and remote location
-                        float[] results = new float[1];
-                        LatLng lla = null, llb = null;
-                        for (int i = 0; i < markers.size(); i++) {
-                            //current location
-                            if (markers.get(i).getTag() == "Global Marker") {
-                                llb = new LatLng(markers.get(i).getPosition().latitude,
-                                        markers.get(i).getPosition().longitude);
-                            }
-                        }
-                        for (int i = 0; i < markers.size(); i++) {
-                            if (markers.get(i).getTag() != "Global Marker") {
-                                if (lla != null && llb != null) {
-                                    Location.distanceBetween(lla.latitude, lla.longitude,
-                                            llb.latitude, llb.longitude, results);
+                                        blnFound = true;
+                                        break;
+                                    }
+                                }
 
-                                    if (results[0] < 1000) {
-                                        setTextViewText(markers.get(i).getTitle() + " is "
-                                                + String.valueOf((int)results[0])
-                                                + " meters from you.");
+                                if (!blnFound) {
+                                    BitmapDescriptor icon =
+                                            BitmapDescriptorFactory.fromResource(
+                                                    R.drawable.bus_marker);
+                                    simuatedBusMarker = MapsActivity.this.mMap.addMarker(
+                                            new MarkerOptions().position(locs)
+                                                    .title("Bus One")
+                                                    .icon(icon));
+                                    simuatedBusMarker.setTag("Bus One");
+                                    markers.add(simuatedBusMarker);
+                                }
+
+                                final Builder builder = new LatLngBounds.Builder();
+                                for (Marker marker : markers) {
+                                    LatLng geoCode = new LatLng(
+                                            marker.getPosition().latitude,
+                                            marker.getPosition().longitude);
+                                    builder.include(geoCode);
+                                }
+                                // Move camera.
+                                Display display = getWindowManager().getDefaultDisplay();
+                                int width = display.getWidth();
+                                int height = display.getHeight();
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(
+                                        builder.build(), width, height,40));
+
+                                //get the distance between local location and remote location
+                                float[] results = new float[1];
+                                LatLng llb = null;
+                                for (int i = 0; i < markers.size(); i++) {
+                                    //current location
+                                    if (markers.get(i).getTag() == "Global Marker") {
+
+                                        llb = new LatLng(markers.get(i).getPosition().latitude,
+                                                markers.get(i).getPosition().longitude);
+                                    }
+                                }
+                                for (int i = 0; i < markers.size(); i++) {
+                                    if (markers.get(i).getTag() != "Global Marker") {
+                                        if (locs != null && llb != null) {
+                                            Location.distanceBetween(locs.latitude,
+                                                    locs.longitude,
+                                                    llb.latitude, llb.longitude, results);
+
+                                            if (results[0] < 1000 && results[0] % 10 == 0) {
+                                                setTextViewText(markers.get(i).getTitle() + " is "
+                                                        + String.valueOf((int)results[0])
+                                                        + " meters from you.");
+
+                                                if (results[0] < 130 && results[0] % 10 == 0) {
+                                                    v.vibrate(25);
+                                                }
+                                            } else if (results[0] < 50) {
+                                                setTextViewText(markers.get(i).getTitle() + " is "
+                                                        + String.valueOf((int)results[0])
+                                                        + " meters from you.");
+
+                                            }
+                                        } else {
+                                            if (locs == null) {
+                                                setTextViewText("locs is null");
+                                            }
+                                            if (llb == null) {
+                                                setTextViewText("llb is null");
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }
-                });
+                        });
 
-                sCount++;
+                        sCount++;
+                    }
+                },1000, time);
+                hasSimTimerStarted = true;
             }
-        },1000, time);
-        hasSimTimerStarted = true;
+        }).start();
     }
 
-    /*=============== Maps - End ===============*/
+    /*#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$# Maps - End #$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#*/
 
     /*============= Views Events - Start ==================*/
     public void adminOnly (View view){
@@ -1107,10 +1076,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void connectToServer() {
         try {
-            socket = IO.socket(getResources().getString(R.string.server_url));
+            IO.Options opts = new IO.Options();
+            opts.timeout = 10000;
+            opts.reconnection = false;
+            socket = IO.socket(getResources().getString(R.string.server_url), opts);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             public void call(Object... args) {
                 MapsActivity.this.runOnUiThread(new Runnable() {
@@ -1177,7 +1150,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     MapsActivity.this.v.vibrate(50);
                 }
-            }
+            };
 
         }).on("message", new Emitter.Listener() {
             public void call(Object... args) {
@@ -1313,6 +1286,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /*============= View Helpers - Start ===========*/
 
+    public void hideSelectBusWindow(View v) {
+        v.startAnimation(buttonClick);
+
+        hideTrackMyBus();
+    }
+
     public void showTrackMyBus () {
         this.track_my_bus_layout.setVisibility(View.VISIBLE);
 
@@ -1325,6 +1304,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void showAdminOnly () {
         this.admin_entrance.setVisibility(View.VISIBLE);
+    }
+
+    public void hideAdminOnlyWindow(View v) {
+        v.startAnimation(buttonClick);
+
+        hideAdminOnly();
     }
 
     public void hideAdminOnly () {
