@@ -145,6 +145,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private Map<Marker, Map<String, Object>> marker_pickups = new HashMap<>();
     private Map<String, Object> markers_pickups_dm = new HashMap<>();
+    ImageButton pickups = null;
+
     int mIndex, msCount = 0;
     PolylineOptions ploCDDPacs_route;
 
@@ -172,6 +174,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.admin_entrance = (LinearLayout) findViewById(R.id.admin_entrance);
         this.track_my_bus_layout = (LinearLayout) findViewById(R.id.track_my_bus_layout);
         this.view_flipper_layout = (RelativeLayout) findViewById(R.id.view_flipper_layout);
+        pickups = (ImageButton) findViewById(R.id.pickups);
+        pickups.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                view.startAnimation(buttonClick);
+
+                MapsActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (lat != null && lng != null) {
+                            doAnimateCameraToPickUps(true);
+                        }
+                    }
+                });
+
+                return false;
+            }
+        });
         this.v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         this.username = "";
 
@@ -359,12 +379,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 final int width = display.getWidth();
                 final int height = display.getHeight();
 
-                if (MapsActivity.this.is_connected && MapsActivity.this.is_bus) {
+                if (is_connected && is_bus) {
                     final JSONObject json = new JSONObject();
                     try {
-                        json.put("id", MapsActivity.this.bus_id);
-                        json.put("lat", MapsActivity.this.lat);
-                        json.put("lng", MapsActivity.this.lng);
+                        json.put("id", bus_id);
+                        json.put("lat", lat);
+                        json.put("lng", lng);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -375,6 +395,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 socket.emit("broadcast location",
                                         json.toString());
                             } catch (Exception e2) {
+                                v.vibrate(2500);
                                 MapsActivity.this.setTextViewText(e2.getMessage());
                             }
                         }
@@ -640,25 +661,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             doAnimateCameraToPickUps(false);
         }
     }
-    public void allbusstops(final View view) {
-        view.startAnimation(buttonClick);
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                MapsActivity.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        view.startAnimation(buttonClick);
 
-                        if (lat != null && lng != null) {
-                            doAnimateCameraToPickUps(true);
-                        }
-                    }
-                });
-            }
-        },1300);
-    }
-    
     void doAnimateCameraToPickUps(boolean bln_all) {
         //find the device's marker location
 
@@ -744,6 +747,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     MARKER_PICKUP_POINT_MARKET_554.longitude));
         }
 
+        //include local location
+        if (lat != null && lng != null) {
+            builder.include(new LatLng(lat,lng));
+        }
         if (blnAtLeastOne) {
             if (!bln_all) {
                 setTextViewText("Showing bus stops near you...");
@@ -1162,7 +1169,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         MapsActivity.this.v.vibrate(100);
 
                         if (message.contains("currently no busses")) {
-                            MapsActivity.this.txtSelectBusOutput.setText(message);
+                            txtSelectBusOutput.setText(message);
                         }
                     }
                 });
@@ -1170,14 +1177,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).on("bus id enabled", new Emitter.Listener() {
             public void call(Object... args) {
                 final String message = String.valueOf(args[0]);
-                MapsActivity.this.is_bus = true;
-                MapsActivity.this.runOnUiThread(new Runnable() {
+                is_bus = true;
+                runOnUiThread(new Runnable() {
                     public void run() {
-                        MapsActivity.this.setTextViewText(message);
-                        MapsActivity.this.hideAdminOnly();
-                        MapsActivity.this.btnSubmit.setText("Bus Tracking Enabled");
-                        MapsActivity.this.btnSubmit.setEnabled(false);
-                        MapsActivity.this.v.vibrate(100);
+                        setTextViewText(message);
+                        hideAdminOnly();
+                        btnSubmit.setText("Bus Tracking Enabled");
+                        btnSubmit.setEnabled(false);
+                        v.vibrate(100);
                     }
                 });
             }
@@ -1186,13 +1193,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 MapsActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        MapsActivity.this.btnAdminOnly.startAnimation(
-                                MapsActivity.this.buttonClick);
+                        btnAdminOnly.startAnimation(buttonClick);
                     }
                 });
             }
         }).on("set bus location", new Emitter.Listener() {
             public void call(Object... args) {
+                setTextViewText(String.valueOf(args[0]));
+                v.vibrate(25);
+
                 //ID|LAT|LNG
                 final String[] loc = String.valueOf(args[0]).split("\\|");
 
@@ -1204,24 +1213,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 new LatLng(Double.parseDouble(loc[1]),
                                         Double.parseDouble(loc[2])));
                         have_marker = true;
+                        setTextViewText("updating location of " + loc[0]);
+
                         break;
                     }
                 }
 
-                //if the ID is new add a market to the map
+                //if the ID is new add a marker to the map
                 if (!have_marker) {
                     //cancel the simulated Bus One
-                    simBusTimer.cancel();
-                    hasSimTimerStarted = false;
-                    for (int i = 0; i < markers.size(); i++) {
-                        if (markers.get(i).getTitle() == "Bus One") {
-                            // Setting latitude and longitude for the marker
-                            markers.remove(i);
-                            simuatedBusMarker.setVisible(false);
-                            setTextViewText("simulated bus tracking disabled");
-                            break;
-                        }
-                    }
+//                    simBusTimer.cancel();
+//                    hasSimTimerStarted = false;
+//                    for (int i = 0; i < markers.size(); i++) {
+//                        if (markers.get(i).getTitle() == "Bus One") {
+//                            // Setting latitude and longitude for the marker
+//                            markers.remove(i);
+//                            simuatedBusMarker.setVisible(false);
+//                            setTextViewText("simulated bus tracking disabled");
+//                            break;
+//                        }
+//                    }
 
                     MapsActivity.this.runOnUiThread(new Runnable() {
                         @Override
@@ -1241,6 +1252,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             markers.add(mark);
                         }
                     });
+                    setTextViewText(loc[0] + " bus marker is now visible on the map.");
                 }
 
                 MapsActivity.this.runOnUiThread(new Runnable() {
@@ -1266,11 +1278,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     public void run() {
                         //set the connect icon
                         btn_connect.setImageResource(R.drawable.connect_white);
-                        MapsActivity.this.txt_connect_btn.setText(
+                        txt_connect_btn.setText(
                                 MapsActivity.this.getResources().getString(R.string.connect));
+
+                        is_connected = false;
                     }
                 });
-                MapsActivity.this.setTextViewText(getString(R.string.disconnected));
+                setTextViewText(getString(R.string.disconnected));
             }
         }).on(Socket.EVENT_CONNECT_TIMEOUT, new Emitter.Listener() {
             public void call(Object... args) {

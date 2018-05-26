@@ -268,7 +268,7 @@
 
     <!--ACTIONS BOTTOM BAR-->
     <RelativeLayout
-        android:background="@drawable/bg_main_top_bar"
+        android:background="@drawable/bg_main_top_bar_dark"
         android:layout_gravity="bottom"
         android:padding="4dp"
         android:layout_width="match_parent"
@@ -319,7 +319,6 @@
                     android:scaleType="fitCenter"
                     android:src="@drawable/bus_stop" />
                 <TextView
-                    android:onClick="allbusstops"
                     android:layout_gravity="center_horizontal"
                     android:textStyle="bold"
                     android:textSize="10sp"
