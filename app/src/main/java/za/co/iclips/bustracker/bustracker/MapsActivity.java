@@ -6,11 +6,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.provider.Settings;
@@ -21,7 +19,6 @@ import android.support.v7.app.AlertDialog;
 import android.os.Vibrator;
 
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -45,7 +42,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -55,14 +51,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -80,15 +71,6 @@ import org.json.JSONObject;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-
-import android.animation.ObjectAnimator;
-import android.animation.TypeEvaluator;
-import android.animation.ValueAnimator;
-import android.annotation.TargetApi;
-import android.os.Build;
-import android.util.Property;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.Interpolator;
 
 import static com.google.android.gms.maps.model.LatLngBounds.*;
 
@@ -149,6 +131,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     int mIndex, msCount = 0;
     PolylineOptions ploCDDPacs_route;
+    private boolean isMarkerRotating;
 
     /* ==== Life Cycle Methods - Start === */
 
@@ -162,13 +145,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         actionBar.hide();
 
         //instaite all vieclient here in alphabetical order
-        this.btnAdminOnly = (Button) findViewById(R.id.btn_admin_only);
-        this.btnSubmit = (Button) findViewById(R.id.btnSubmit);
+        btnAdminOnly = (Button) findViewById(R.id.btn_admin_only);
+        btnSubmit = (Button) findViewById(R.id.btnSubmit);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        this.edtBusID = (TextView) findViewById(R.id.edtBusID);
-        this.txt_connect_btn = (TextView) findViewById(R.id.txt_connect_btn);
-        this.loading_text = (TextView) findViewById(R.id.loading_text);
-        this.btn_connect = (ImageButton) findViewById(R.id.btn_connect);
+        edtBusID = (TextView) findViewById(R.id.edtBusID);
+        txt_connect_btn = (TextView) findViewById(R.id.txt_connect_btn);
+        loading_text = (TextView) findViewById(R.id.loading_text);
+        btn_connect = (ImageButton) findViewById(R.id.btn_connect);
+        btn_connect.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (is_connected) {
+                    try {
+                        socket.disconnect();
+                    } catch (Exception e) {
+                        setTextViewText(e.getMessage());
+                    }
+                    return true;
+                } else {
+
+                    return false;
+                }
+            }
+        });
         this.txtSelectBusOutput = (TextView) findViewById(R.id.txtSelectBusOutput);
         this.selectBusID = (ListView) findViewById(R.id.selectBusID);
         this.admin_entrance = (LinearLayout) findViewById(R.id.admin_entrance);
@@ -189,7 +188,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 });
 
-                return false;
+                return true;
             }
         });
         this.v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
@@ -360,7 +359,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 lng = location.getLongitude();
                 for (int i = 0; i < markers.size(); i++) {
                     final int f = i;
-                    if (markers.get(i).getTag() == "Global Marker") {
+                    if (markers.get(i).getTag().toString()
+                            .trim().equals("Global Marker")) {
                         // Setting latitude and longitude for the marker
                         markers.get(i).setPosition(new LatLng(lat, lng));
                         final int j = i;
@@ -798,47 +798,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void writeToFile(String data)
-    {
-        // Get the directory for the user's public pictures directory.
-        final File path =
-                Environment.getExternalStoragePublicDirectory
-                        (
-                                //Environment.DIRECTORY_PICTURES
-                                Environment.DIRECTORY_DCIM + "/Bus Tracker/"
-                        );
-
-        // Make sure the path directory exists.
-        if(!path.exists())
-        {
-            // Make it, if it doesn't exit
-            path.mkdirs();
-        }
-
-        final File file = new File(path, "gps_polyline.txt");
-
-        // Save your stream, don't forget to flush() it before closing it.
-
-        try
-        {
-            file.createNewFile();
-            FileOutputStream fOut = new FileOutputStream(file);
-            OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-            myOutWriter.append(data);
-
-            myOutWriter.close();
-
-            fOut.flush();
-            fOut.close();
-
-            setTextViewText("file is created with the coordinates. path is ");
-        }
-        catch (IOException e)
-        {
-            Log.e("Exception", "File write failed: " + e.toString());
-        }
-    }
-
     //BUSSES
     private void listSimulatedBusses() {
         List<String> list = new ArrayList<>();
@@ -858,12 +817,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         @Override
                         public void onItemClick(AdapterView<?> adapterView,
                                                 View view, final int i, long l) {
+
+                            final String  itemBusID = (String) selectBusID.getItemAtPosition(i);
+
                             MapsActivity.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     if (i == 0) {
                                         setSimulatedPath();
-                                        //animateSimBusOne();
+                                    } else {
+                                        //send bus ID to server
+                                        if (is_connected) {
+                                            try {
+                                                socket.emit("request bus location", itemBusID);
+                                            } catch (Exception e) {
+                                                setTextViewText(e.getMessage());
+                                            }
+                                        }
                                     }
                                 }
                             });
@@ -871,7 +841,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     });
                 }
             });
-
 
             MapsActivity.this.v.vibrate(100);
         }
@@ -890,11 +859,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 ploCDDPacs_route = Polylines.getPolylineCBDPacaltsdorp();
 
-                startSBTomerSchedule(ploCDDPacs_route);
+                startSBTimerSchedule(ploCDDPacs_route);
+                MapsActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Object line = mMap.addPolyline(ploCDDPacs_route.width(3).color(Color.BLUE).geodesic(true));
+                    }
+                });
             }
 
-            private void startSBTomerSchedule(final PolylineOptions ploCDDPacs_route) {
-                setTextViewText("Starting bus route for ...");
+            private void startSBTimerSchedule(final PolylineOptions ploCDDPacs_route) {
+                setTextViewText("Viewing simulated CBD - New Dawn Park bus route...");
 
                 simBusTimer = new Timer();
                 int time = 500;
@@ -916,10 +891,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 LatLng locs = ploCDDPacs_route.getPoints().get(sCount);
                                 boolean blnFound = false;
                                 for (int i = 0; i < markers.size(); i++) {
-                                    if (markers.get(i).getTag() == "Bus One") {
+                                    if (markers.get(i).getTag().toString().trim().equals("Bus One")) {
                                         // Setting latitude and longitude for the marker
+                                        LatLng current_latlng = markers.get(i).getPosition();
                                         markers.get(i).setPosition(locs);
 
+                                        rotateMarker(markers.get(i),
+                                                (float)bearingBetweenLocations(
+                                                        current_latlng, locs));
                                         blnFound = true;
                                         break;
                                     }
@@ -937,7 +916,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     markers.add(simuatedBusMarker);
                                 }
 
-                                final Builder builder = new LatLngBounds.Builder();
+                                final Builder builder = new Builder();
                                 for (Marker marker : markers) {
                                     LatLng geoCode = new LatLng(
                                             marker.getPosition().latitude,
@@ -951,26 +930,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(
                                         builder.build(), width, height,40));
 
+                                mMap.setPadding(10, 40, 10, 40);
                                 //get the distance between local location and remote location
                                 float[] results = new float[1];
                                 LatLng llb = null;
                                 for (int i = 0; i < markers.size(); i++) {
                                     //current location
-                                    if (markers.get(i).getTag() == "Global Marker") {
-
+                                    if (markers.get(i).getTag().equals("Global Marker")) {
                                         llb = new LatLng(markers.get(i).getPosition().latitude,
                                                 markers.get(i).getPosition().longitude);
                                     }
                                 }
                                 for (int i = 0; i < markers.size(); i++) {
-                                    if (markers.get(i).getTag() != "Global Marker") {
+                                    if (!markers.get(i).getTag().toString().trim()
+                                            .equals("Global Marker")) {
                                         if (locs != null && llb != null) {
                                             Location.distanceBetween(locs.latitude,
                                                     locs.longitude,
                                                     llb.latitude, llb.longitude, results);
 
-                                            if (results[0] < 1000 && results[0] % 10 == 0) {
-                                                setTextViewText(markers.get(i).getTitle() + " is "
+                                            if (results[0] < 1000 && results[0] % 2 == 0) {
+                                                setTextViewText(markers.get(i).getTag().toString() + " is "
                                                         + String.valueOf((int)results[0])
                                                         + " meters from you.");
 
@@ -978,7 +958,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                                     v.vibrate(25);
                                                 }
                                             } else if (results[0] < 50) {
-                                                setTextViewText(markers.get(i).getTitle() + " is "
+                                                setTextViewText(markers.get(i).getTag().toString() + " is "
                                                         + String.valueOf((int)results[0])
                                                         + " meters from you.");
 
@@ -988,7 +968,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                                 setTextViewText("locs is null");
                                             }
                                             if (llb == null) {
-                                                setTextViewText("llb is null");
+                                                setTextViewText("local location variables is not set");
                                             }
                                         }
                                     }
@@ -1078,6 +1058,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             connectToServer();
         } else {
             setTextViewText(this.getResources().getString(R.string.connected));
+            setTextViewText(getResources().getString(
+                    R.string.hold_to_disconnect));
         }
     }
 
@@ -1199,65 +1181,58 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }).on("set bus location", new Emitter.Listener() {
             public void call(Object... args) {
-                setTextViewText(String.valueOf(args[0]));
                 v.vibrate(25);
 
                 //ID|LAT|LNG
-                final String[] loc = String.valueOf(args[0]).split("\\|");
-
-                boolean have_marker = false;
-                for (int i = 0; i < markers.size(); i++) {
-                    if (markers.get(i).getTag() == loc[0]) {
-                        // Setting latitude and longitude for the marker
-                        markers.get(i).setPosition(
-                                new LatLng(Double.parseDouble(loc[1]),
-                                        Double.parseDouble(loc[2])));
-                        have_marker = true;
-                        setTextViewText("updating location of " + loc[0]);
-
-                        break;
-                    }
-                }
-
-                //if the ID is new add a marker to the map
-                if (!have_marker) {
-                    //cancel the simulated Bus One
-//                    simBusTimer.cancel();
-//                    hasSimTimerStarted = false;
-//                    for (int i = 0; i < markers.size(); i++) {
-//                        if (markers.get(i).getTitle() == "Bus One") {
-//                            // Setting latitude and longitude for the marker
-//                            markers.remove(i);
-//                            simuatedBusMarker.setVisible(false);
-//                            setTextViewText("simulated bus tracking disabled");
-//                            break;
-//                        }
-//                    }
-
-                    MapsActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            BitmapDescriptor icon =
-                                    BitmapDescriptorFactory.fromResource(
-                                            R.drawable.bus_marker);
-
-                            Marker mark = MapsActivity.this.mMap.addMarker(
-                                    new MarkerOptions().position(
-                                    new LatLng(Double.parseDouble(loc[1]),
-                                            Double.parseDouble(loc[2])))
-                                    .title(loc[0])
-                                    .icon(icon)
-                            );
-                            mark.setTag(String.valueOf(loc[0]));
-                            markers.add(mark);
-                        }
-                    });
-                    setTextViewText(loc[0] + " bus marker is now visible on the map.");
-                }
+                final String[] loc = String.valueOf(args[0]).split(
+                        "\\|");
 
                 MapsActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        boolean have_marker = false;
+                        for (int i = 0; i < markers.size(); i++) {
+                            if (String.valueOf(markers.get(i).getTag()).trim().equals(
+                                    String.valueOf(loc[0]).trim())) {
+                                // Setting latitude and longitude for the marker
+                                LatLng current_latlng = markers.get(i).getPosition();
+                                
+                                LatLng new_latlng = new LatLng(Double.parseDouble(loc[1]),
+                                        Double.parseDouble(loc[2]));
+                                markers.get(i).setPosition(new_latlng);
+                                have_marker = true;
+                                
+                                rotateMarker(markers.get(i), 
+                                    (float)bearingBetweenLocations(
+                                        current_latlng, new_latlng));
+
+                                break;
+                            }
+                        }
+
+                        //if the ID is new add a marker to the map
+
+                        if (!have_marker) {
+                            //set the marker to the map
+                            BitmapDescriptor icon =
+                                    BitmapDescriptorFactory.fromResource(
+                                            R.drawable.real_time_bus1);
+
+                            Marker mark = MapsActivity.this.mMap.addMarker(
+                                    new MarkerOptions().position(
+                                            new LatLng(Double.parseDouble(loc[1]),
+                                                    Double.parseDouble(loc[2])))
+                                            .title(loc[0])
+                                            .icon(icon)
+                            );
+                            mark.setTag(String.valueOf(loc[0]));
+                            markers.add(mark);
+
+                            setTextViewText(loc[0] +
+                                    " bus marker is now visible on the map.");
+
+                        }
+
                         Builder builder = new Builder();
                         for (Marker marker : markers) {
                             builder.include(marker.getPosition());
@@ -1343,5 +1318,57 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    private double bearingBetweenLocations(LatLng latLng1,LatLng latLng2) {
+
+        double PI = 3.14159;
+        double lat1 = latLng1.latitude * PI / 180;
+        double long1 = latLng1.longitude * PI / 180;
+        double lat2 = latLng2.latitude * PI / 180;
+        double long2 = latLng2.longitude * PI / 180;
+
+        double dLon = (long2 - long1);
+
+        double y = Math.sin(dLon) * Math.cos(lat2);
+        double x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1)
+                * Math.cos(lat2) * Math.cos(dLon);
+
+        double brng = Math.atan2(y, x);
+
+        brng = Math.toDegrees(brng);
+        brng = (brng + 360) % 360;
+
+        return brng;
+    }
+
+    private void rotateMarker(final Marker marker, final float toRotation) {
+        if(!isMarkerRotating) {
+            final Handler handler = new Handler();
+            final long start = SystemClock.uptimeMillis();
+            final float startRotation = marker.getRotation();
+            final long duration = 1000;
+
+            final LinearInterpolator interpolator = new LinearInterpolator();
+
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    isMarkerRotating = true;
+
+                    long elapsed = SystemClock.uptimeMillis() - start;
+                    float t = interpolator.getInterpolation((float) elapsed / duration);
+
+                    float rot = t * toRotation + (1 - t) * startRotation;
+
+                    marker.setRotation(-rot > 180 ? rot / 2 : rot);
+                    if (t < 1.0) {
+                        // Post again 16ms later.
+                        handler.postDelayed(this, 16);
+                    } else {
+                        isMarkerRotating = false;
+                    }
+                }
+            });
+        }
+    }
     /*============= View Helpers - End ===========*/
 }

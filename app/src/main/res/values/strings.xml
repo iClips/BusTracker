@@ -17,6 +17,7 @@
     <string name="disconnected_timeout">Connection request timed out.</string>
     <string name="drawer_close">drawer close</string>
     <string name="drawer_open">drawer open</string>
+    <string name="hold_to_disconnect">Hold To View All Markers.</string>
     <string name="find_now">Find Now</string>
     <string name="transite">Moving In...</string>
     <string name="not_connected">The system was unable to connect!</string>
