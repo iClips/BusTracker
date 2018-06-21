@@ -82,7 +82,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LinearLayout admin_entrance;
     Button btnAdminOnly;
     Button btnSubmit;
-    Double lat, lng;
+    Double loc_lat, loc_lng;
     private ImageButton btn_connect;
     private String bus_id;
     public AlphaAnimation buttonClick = new AlphaAnimation(1.0f, 0.8f);
@@ -113,7 +113,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     int sCount = 0;
     boolean fwd = true;
 
-    //PICKUP POINTS lat,lng,
+    //PICKUP POINTS loc_lat,loc_lng,
     static final LatLng MARKER_PICKUP_POINT_FLAMINK_674 =
             new LatLng(-34.018940055845874, 22.477776837893657);
     static final LatLng MARKER_PICKUP_POINT_VALK_672=
@@ -182,7 +182,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 MapsActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (lat != null && lng != null) {
+                        if (loc_lat != null && loc_lng != null) {
                             doAnimateCameraToPickUps(true);
                         }
                     }
@@ -355,14 +355,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         public void onLocationChanged(final Location location) {
             if (location != null) {
-                lat = location.getLatitude();
-                lng = location.getLongitude();
+                loc_lat = location.getLatitude();
+                loc_lng = location.getLongitude();
                 for (int i = 0; i < markers.size(); i++) {
                     final int f = i;
                     if (markers.get(i).getTag().toString()
                             .trim().equals("Global Marker")) {
                         // Setting latitude and longitude for the marker
-                        markers.get(i).setPosition(new LatLng(lat, lng));
+                        markers.get(i).setPosition(new LatLng(loc_lat, loc_lng));
                         final int j = i;
                         break;
                     }
@@ -383,8 +383,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     final JSONObject json = new JSONObject();
                     try {
                         json.put("id", bus_id);
-                        json.put("lat", lat);
-                        json.put("lng", lng);
+                        json.put("loc_lat", loc_lat);
+                        json.put("loc_lng", loc_lng);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -531,7 +531,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
 
                         //move the camera closer
-                        if (lat != null && lng != null) {
+                        if (loc_lat != null && loc_lng != null) {
                             doAnimateCameraToPickUps(true);
                         }
                     }
@@ -657,7 +657,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void animatePickups(final View view) {
         view.startAnimation(buttonClick);
 
-        if (lat != null && lng != null) {
+        if (loc_lat != null && loc_lng != null) {
             doAnimateCameraToPickUps(false);
         }
     }
@@ -672,7 +672,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         float[] results = new float[1];
         Location.distanceBetween(MARKER_PICKUP_POINT_VALK_672.latitude,
                 MARKER_PICKUP_POINT_VALK_672.longitude,
-                lat, lng, results);
+                loc_lat, loc_lng, results);
 
         if (bln_all) {
             blnAtLeastOne = true;
@@ -688,7 +688,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Location.distanceBetween(MARKER_PICKUP_POINT_VALK_671.latitude,
                 MARKER_PICKUP_POINT_VALK_671.longitude,
-                lat, lng, results);
+                loc_lat, loc_lng, results);
         if (bln_all) {
             blnAtLeastOne = true;
             builder.include(new LatLng(
@@ -704,7 +704,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Location.distanceBetween(MARKER_PICKUP_POINT_FLAMINK_673.latitude,
                 MARKER_PICKUP_POINT_FLAMINK_673.longitude,
-                lat, lng, results);
+                loc_lat, loc_lng, results);
         if (bln_all) {
             blnAtLeastOne = true;
             builder.include(new LatLng(
@@ -719,7 +719,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Location.distanceBetween(MARKER_PICKUP_POINT_FLAMINK_674.latitude,
                 MARKER_PICKUP_POINT_FLAMINK_674.longitude,
-                lat, lng, results);
+                loc_lat, loc_lng, results);
         if (bln_all) {
             blnAtLeastOne = true;
             builder.include(new LatLng(
@@ -734,7 +734,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Location.distanceBetween(MARKER_PICKUP_POINT_MARKET_554.latitude,
                 MARKER_PICKUP_POINT_MARKET_554.longitude,
-                lat, lng, results);
+                loc_lat, loc_lng, results);
         if (bln_all) {
             blnAtLeastOne = true;
             builder.include(new LatLng(
@@ -748,8 +748,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         //include local location
-        if (lat != null && lng != null) {
-            builder.include(new LatLng(lat,lng));
+        if (isValidLatLng(loc_lat, loc_lng)) {
+            builder.include(new LatLng(loc_lat, loc_lng));
         }
         if (blnAtLeastOne) {
             if (!bln_all) {
@@ -855,7 +855,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //inistantiate a instance cbd pacs polyline
         new Thread(new Runnable() {
             public void run(){
-                setTextViewText("Building a route for Simulated CDB Pacalstdorp...");
+                setTextViewText(
+                    "Building a route for Simulated CDB Pacalstdorp...");
 
                 ploCDDPacs_route = Polylines.getPolylineCBDPacaltsdorp();
 
@@ -863,7 +864,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 MapsActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Object line = mMap.addPolyline(ploCDDPacs_route.width(3).color(Color.BLUE).geodesic(true));
+                    Object line = mMap.addPolyline(ploCDDPacs_route.width(3).color(Color.BLUE).geodesic(true));
                     }
                 });
             }
@@ -872,7 +873,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 setTextViewText("Viewing simulated CBD - New Dawn Park bus route...");
 
                 simBusTimer = new Timer();
-                int time = 500;
+                int time = 1000;
 
                 simBusTimer.schedule(new TimerTask() {
                     @Override
@@ -881,6 +882,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         if (sCount == ploCDDPacs_route.getPoints().size() - 1) {
                             sCount = 0;
                             simBusTimer.cancel();
+
+                            hasSimTimerStarted = false;
+
+                            //cancel bus
+                            try {
+                                markers.remove(simuatedBusMarker);
+
+                            } catch (Exception ex) {
+
+                            }
+
+                            MapsActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    simuatedBusMarker.setVisible(false);
+                                }
+                            });
+
                             return;
                         }
 
@@ -891,14 +910,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 LatLng locs = ploCDDPacs_route.getPoints().get(sCount);
                                 boolean blnFound = false;
                                 for (int i = 0; i < markers.size(); i++) {
-                                    if (markers.get(i).getTag().toString().trim().equals("Bus One")) {
+                                    if (markers.get(i).getTag().toString()
+                                            .trim().equals("Sim Bus One")) {
                                         // Setting latitude and longitude for the marker
                                         LatLng current_latlng = markers.get(i).getPosition();
-                                        markers.get(i).setPosition(locs);
 
+                                        //rotate bus marker
                                         rotateMarker(markers.get(i),
                                                 (float)bearingBetweenLocations(
                                                         current_latlng, locs));
+
+                                        markers.get(i).setPosition(locs);
+
                                         blnFound = true;
                                         break;
                                     }
@@ -907,12 +930,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 if (!blnFound) {
                                     BitmapDescriptor icon =
                                             BitmapDescriptorFactory.fromResource(
-                                                    R.drawable.bus_marker);
+                                                    R.drawable.sim_bus1);
                                     simuatedBusMarker = MapsActivity.this.mMap.addMarker(
                                             new MarkerOptions().position(locs)
-                                                    .title("Bus One")
+                                                    .title("Sim Bus One")
                                                     .icon(icon));
-                                    simuatedBusMarker.setTag("Bus One");
+                                    simuatedBusMarker.setTag("Sim Bus One");
                                     markers.add(simuatedBusMarker);
                                 }
 
@@ -936,7 +959,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 LatLng llb = null;
                                 for (int i = 0; i < markers.size(); i++) {
                                     //current location
-                                    if (markers.get(i).getTag().equals("Global Marker")) {
+                                    if (markers.get(i).getTag().toString()
+                                            .equals("Global Marker")) {
                                         llb = new LatLng(markers.get(i).getPosition().latitude,
                                                 markers.get(i).getPosition().longitude);
                                     }
@@ -1051,6 +1075,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     /*============= Views onClick - End ====================*/
 
     /*============= SOCKET - Starts =============*/
+
     public void connect(View view) {
         view.startAnimation(buttonClick);
         if (!is_connected) {
@@ -1271,28 +1296,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         socket.connect();
     }
 
+
     /*============= SOCKET - End ===============*/
 
     /*============= View Helpers - Start ===========*/
-
-    public void hideSelectBusWindow(View v) {
-        v.startAnimation(buttonClick);
-
-        hideTrackMyBus();
-    }
-
-    public void showTrackMyBus () {
-        this.track_my_bus_layout.setVisibility(View.VISIBLE);
-
-        listSimulatedBusses();
-    }
-
-    public void hideTrackMyBus () {
-        this.track_my_bus_layout.setVisibility(View.GONE);
-    }
-
-    public void showAdminOnly () {
-        this.admin_entrance.setVisibility(View.VISIBLE);
+    public void hideAdminOnly () {
+        this.admin_entrance.setVisibility(View.GONE);
     }
 
     public void hideAdminOnlyWindow(View v) {
@@ -1301,8 +1310,36 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         hideAdminOnly();
     }
 
-    public void hideAdminOnly () {
-        this.admin_entrance.setVisibility(View.GONE);
+    public void hideSelectBusWindow(View v) {
+        v.startAnimation(buttonClick);
+
+        hideTrackMyBus();
+    }
+
+    public void hideTrackMyBus () {
+        this.track_my_bus_layout.setVisibility(View.GONE);
+    }
+
+    public boolean isValidLatLng(double lat, double lng){
+        if(lat < -90 || lat > 90)
+        {
+            return false;
+        }
+        else if(lng < -180 || lng > 180)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public void showTrackMyBus () {
+        this.track_my_bus_layout.setVisibility(View.VISIBLE);
+
+        listSimulatedBusses();
+    }
+
+    public void showAdminOnly () {
+        this.admin_entrance.setVisibility(View.VISIBLE);
     }
 
     public void setTextViewText ( final String str){
@@ -1355,10 +1392,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     isMarkerRotating = true;
 
                     long elapsed = SystemClock.uptimeMillis() - start;
-                    float t = interpolator.getInterpolation((float) elapsed / duration);
+                    float t = interpolator.getInterpolation(
+                            (float) elapsed / duration);
 
                     float rot = t * toRotation + (1 - t) * startRotation;
 
+                    marker.setAnchor(0.5f, 0.5f);
                     marker.setRotation(-rot > 180 ? rot / 2 : rot);
                     if (t < 1.0) {
                         // Post again 16ms later.

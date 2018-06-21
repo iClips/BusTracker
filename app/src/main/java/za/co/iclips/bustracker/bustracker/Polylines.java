@@ -33,20 +33,13 @@ public class Polylines {
                 new LatLng(-34.01777,22.46774),new LatLng(-34.01777,22.46785),
                 new LatLng(-34.01778,22.46797),new LatLng(-34.01783,22.46822),
                 new LatLng(-34.01812,22.46953),new LatLng(-34.01845, 22.47076),
+
                 new LatLng(-34.01901, 22.47116),new LatLng(-34.01976, 22.47099),
                 new LatLng(-34.01983, 22.47165),new LatLng(-34.01976, 22.47214),
                 new LatLng(-34.0196, 22.47255),new LatLng(-34.01925, 22.473),
                 new LatLng(-34.01914, 22.47357),new LatLng(-34.0192, 22.47387),
                 new LatLng(-34.01944, 22.4747),new LatLng(-34.02045, 22.47515),
                 new LatLng(-34.02057, 22.47544),new LatLng(-34.02069, 22.47599),
-
-                new LatLng(-34.0202, 22.47717),new LatLng(-34.01974, 22.4774), //valk
-                new LatLng(-34.01974, 22.4774),new LatLng(-34.01974, 22.4774),
-                new LatLng(-34.01974, 22.4774),new LatLng(-34.01974, 22.4774),
-                        new LatLng(-34.01974, 22.4774),new LatLng(-34.01974, 22.4774),
-                        new LatLng(-34.01974, 22.4774),new LatLng(-34.01974, 22.4774),
-                        new LatLng(-34.01974, 22.4774),new LatLng(-34.01974, 22.4774),
-                        new LatLng(-34.01974, 22.4774),new LatLng(-34.01974, 22.4774),
 
                 new LatLng(-34.01974,22.4774),
                 new LatLng(-34.01921,22.47759),
